@@ -10,7 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import datetime
+import os
+
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +28,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-7q-+uehef78xekxueu4d2qq5q&@w6+u!d=q$-3^q1is8xfsp6i"
+SECRET_KEY = os.getenv("SEKRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
 
 # Application definition
@@ -37,6 +45,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # internal apps
+    "user",
+    # third patry packages
+    "corsheaders",
+    "rest_framework",
+    "rest_framework_simplejwt",
+
 ]
 
 MIDDLEWARE = [
@@ -50,6 +65,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "cloud.urls"
+CORS_URLS_REGEX = r"^/api/.*"
+CORS_ALLOWED_ORIGINS = os.getenv("ALLOWED_CORS_ORIGINS").split(",")
 
 TEMPLATES = [
     {
@@ -75,8 +92,12 @@ WSGI_APPLICATION = "cloud.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": os.getenv("DB_ENGINE"),
+        "NAME": os.getenv("DB_NAME"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
     }
 }
 
@@ -90,6 +111,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 6,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -111,13 +135,100 @@ USE_I18N = True
 
 USE_TZ = True
 
+AUTH_USER_MODEL = "user.User"
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
 
+MEDIA_ROOT = "media/"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticatedOrReadOnly"],
+}
+
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ["Bearer"],
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=30),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+}
+
+STORAGE_MAX_SIZE = 2000000000
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "django": {
+            "format": "[{asctime}] {levelname} {message}",
+            "style": "{",
+        },
+        "gunicorn": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+        },
+        "django.server": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "django",
+        },
+        "django_log": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "django.log",
+            "formatter": "django",
+        },
+        "gunicorn_access_log": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "gunicorn_access.log",
+            "formatter": "gunicorn",
+        },
+        "gunicorn_error_log": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "gunicorn_error.log",
+            "formatter": "gunicorn",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "django_log"],
+            "level": "INFO",
+        },
+        "django.server": {
+            "handlers": ["django.server", "django_log"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "gunicorn.error": {
+            "handlers": ["console", "gunicorn_error_log"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "gunicorn.access": {
+            "handlers": ["console", "gunicorn_access_log"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
