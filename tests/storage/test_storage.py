@@ -6,7 +6,7 @@ def test_storage_list_view_no_token(client):
     """
     Get storage list without token
     """
-    response = client.get("/api/v1/storages/")
+    response = client.get("/api/storages/")
     assert response.status_code == 401
     data = response.json()
     assert data == {"detail": "Authentication credentials were not provided."}
@@ -19,7 +19,7 @@ def test_storage_list_view_admin(client, jwt_token_admin_factory):
     """
     user_data = jwt_token_admin_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
-    response = client.get("/api/v1/storages/")
+    response = client.get("/api/storages/")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
@@ -32,7 +32,7 @@ def test_storage_list_view_regular(client, jwt_token_regular_factory):
     """
     user_data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
-    response = client.get("/api/v1/storages/")
+    response = client.get("/api/storages/")
     assert response.status_code == 403
     data = response.json()
     assert data == {"detail": "You do not have permission to perform this action."}
@@ -43,7 +43,7 @@ def test_storage_retrieve_view_not_exists(client):
     """
     Get storage that does not exist
     """
-    response = client.get("/api/v1/storages/1/")
+    response = client.get("/api/storages/1/")
     assert response.status_code == 404
     data = response.json()
     assert data == {"detail": "Not found."}
@@ -55,7 +55,7 @@ def test_storage_retrieve_view_no_token(client, user_factory):
     Get particular storage without token
     """
     user = user_factory()
-    response = client.get(f"/api/v1/storages/{user.storage.id}/")
+    response = client.get(f"/api/storages/{user.storage.id}/")
     assert response.status_code == 401
     data = response.json()
     assert data == {"detail": "Authentication credentials were not provided."}
@@ -68,8 +68,8 @@ def test_storage_retrieve_view_regular(client, jwt_token_regular_factory):
     """
     user_data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
-    storage_id = client.get(f"/api/v1/users/{user_data.get('id')}/").json().get("storage_id")
-    response = client.get(f"/api/v1/storages/{storage_id}/")
+    storage_id = client.get(f"/api/users/{user_data.get('id')}/").json().get("storage_id")
+    response = client.get(f"/api/storages/{storage_id}/")
     assert response.status_code == 200
     data = response.json()
     assert data.get("files_count") == 0
@@ -85,7 +85,7 @@ def test_storage_other_user_retrieve_view_regular(client, user_factory, jwt_toke
     user_data1 = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     user_data2 = user_factory()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data1.get('token')}")
-    response = client.get(f"/api/v1/storages/{user_data2.storage.pk}/")
+    response = client.get(f"/api/storages/{user_data2.storage.pk}/")
     assert response.status_code == 403
     data = response.json()
     assert data == {"detail": "You do not have permission to perform this action."}
@@ -99,7 +99,7 @@ def test_storage_other_user_retrieve_view_admin(client, user_factory, jwt_token_
     user_data1 = jwt_token_admin_factory("test", "test@test.ru", "test_name")
     user_data2 = user_factory()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data1.get('token')}")
-    response = client.get(f"/api/v1/storages/{user_data2.storage.pk}/")
+    response = client.get(f"/api/storages/{user_data2.storage.pk}/")
     assert response.status_code == 200
     data = response.json()
     assert data.get("files_count") == 0

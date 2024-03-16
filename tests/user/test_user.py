@@ -16,7 +16,7 @@ def test_create_user_api(client):
         "email": "test@test.ru",
         "full_name": "test_name",
     }
-    response = client.post("/api/v1/users/", data=data, format="json")
+    response = client.post("/api/users/", data=data, format="json")
     assert response.status_code == 201
     assert User.objects.count() == count + 1
     reply = response.json()
@@ -36,7 +36,7 @@ def test_create_user_exists(client, user_factory):
         "email": user.email,
         "full_name": "test_name",
     }
-    response = client.post("/api/v1/users/", data=data, format="json")
+    response = client.post("/api/users/", data=data, format="json")
     assert response.status_code == 400
     reply = response.json()
     assert reply["username"] == ["user with this username already exists."]
@@ -58,7 +58,7 @@ def test_create_user_less_info(client):
     data_copy = data.copy()
     for field in data:
         data_copy.pop(field)
-        response = client.post("/api/v1/users/", data=data_copy, format="json")
+        response = client.post("/api/users/", data=data_copy, format="json")
         assert response.status_code == 400
         assert response.json() == {field: ["This field is required."]}
         data_copy = data.copy()
@@ -79,7 +79,7 @@ def test_create_user_null_info(client):
     data_copy = data.copy()
     for field in ["username", "email", "full_name"]:
         data_copy[field] = None
-        response = client.post("/api/v1/users/", data=data_copy, format="json")
+        response = client.post("/api/users/", data=data_copy, format="json")
         assert response.status_code == 400
         assert response.json() == {field: ["This field may not be null."]}
         data_copy = data.copy()
@@ -100,7 +100,7 @@ def test_create_user_blank_info(client):
     data_copy = data.copy()
     for field in ["username", "email", "full_name"]:
         data_copy[field] = ""
-        response = client.post("/api/v1/users/", data=data_copy, format="json")
+        response = client.post("/api/users/", data=data_copy, format="json")
         assert response.status_code == 400
         assert response.json() == {field: ["This field may not be blank."]}
         data_copy = data.copy()
@@ -118,7 +118,7 @@ def test_create_user_email_validation(client):
         "email": "email",
         "full_name": "test_name",
     }
-    response = client.post("/api/v1/users/", data=data, format="json")
+    response = client.post("/api/users/", data=data, format="json")
     assert response.status_code == 400
     reply = response.json()
     assert reply == {"email": ["Enter a valid email address."]}
@@ -150,7 +150,7 @@ def test_create_user_password_validation(client, password, expected_reply):
         "email": "test@test.ru",
         "full_name": "test_name",
     }
-    response = client.post("/api/v1/users/", data=data, format="json")
+    response = client.post("/api/users/", data=data, format="json")
     assert response.status_code == 400
     reply = response.json()
     assert reply == expected_reply
@@ -168,7 +168,7 @@ def test_create_user_password_repeat_differs(client):
         "email": "email",
         "full_name": "test_name",
     }
-    response = client.post("/api/v1/users/", data=data, format="json")
+    response = client.post("/api/users/", data=data, format="json")
     assert response.status_code == 400
     reply = response.json()
     assert reply == {"password": ["Password fields does not match."]}
@@ -179,7 +179,7 @@ def test_list_users_no_token(client):
     """
     Get user list info without token
     """
-    response = client.get("/api/v1/users/")
+    response = client.get("/api/users/")
     assert response.status_code == 401
     data = response.json()
     assert data == {"detail": "Authentication credentials were not provided."}
@@ -191,7 +191,7 @@ def test_list_users_wrong_token(client):
     Get user list info with wrong token
     """
     client.credentials(HTTP_AUTHORIZATION="Bearer wrong_token")
-    response = client.get("/api/v1/users/")
+    response = client.get("/api/users/")
     assert response.status_code == 401
     data = response.json()
     assert data == {
@@ -215,7 +215,7 @@ def test_list_users_admin(client, user_factory, jwt_token_admin_factory):
     data = jwt_token_admin_factory("test", "test@test.ru", "test_name")
     users = user_factory(_quantity=5)
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.get("/api/v1/users/")
+    response = client.get("/api/users/")
     assert response.status_code == 200
     data = response.json()
     assert len(users) == len(data)
@@ -228,7 +228,7 @@ def test_list_users_user(client, jwt_token_regular_factory):
     """
     data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.get("/api/v1/users/")
+    response = client.get("/api/users/")
     assert response.status_code == 403
     data = response.json()
     assert data == {"detail": "You do not have permission to perform this action."}
@@ -240,7 +240,7 @@ def test_retrieve_users_no_token(client, user_factory):
     Get particular user info without token
     """
     user = user_factory()
-    response = client.get(f"/api/v1/users/{user.id}/")
+    response = client.get(f"/api/users/{user.id}/")
     assert response.status_code == 401
     data = response.json()
     assert data == {"detail": "Authentication credentials were not provided."}
@@ -253,7 +253,7 @@ def test_retrieve_users_wrong_token(client, user_factory):
     """
     user = user_factory()
     client.credentials(HTTP_AUTHORIZATION="Bearer wrong_token")
-    response = client.get(f"/api/v1/users/{user.id}/")
+    response = client.get(f"/api/users/{user.id}/")
     assert response.status_code == 401
     data = response.json()
     assert data == {
@@ -276,7 +276,7 @@ def test_retrieve_users_user_token(client, jwt_token_regular_factory):
     """
     data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.get(f"/api/v1/users/{data.get('id')}/")
+    response = client.get(f"/api/users/{data.get('id')}/")
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == data.get("id")
@@ -289,7 +289,7 @@ def test_retrieve_users_user_not_exist(client, jwt_token_admin_factory):
     """
     data = jwt_token_admin_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.get("/api/v1/users/9999/")
+    response = client.get("/api/users/9999/")
     assert response.status_code == 404
     data = response.json()
     assert data == {"detail": "Not found."}
@@ -301,7 +301,7 @@ def test_destroy_users_no_token(client, user_factory):
     Delete particular user without token
     """
     user = user_factory()
-    response = client.delete(f"/api/v1/users/delete/{user.id}/")
+    response = client.delete(f"/api/users/delete/{user.id}/")
     assert response.status_code == 401
     data = response.json()
     assert data == {"detail": "Authentication credentials were not provided."}
@@ -314,7 +314,7 @@ def test_destroy_users_wrong_token(client, user_factory):
     """
     user = user_factory()
     client.credentials(HTTP_AUTHORIZATION="Bearer wrong_token/")
-    response = client.delete(f"/api/v1/users/delete/{user.id}/")
+    response = client.delete(f"/api/users/delete/{user.id}/")
     assert response.status_code == 401
     data = response.json()
     assert data == {
@@ -337,7 +337,7 @@ def test_destroy_users_user_token(client, jwt_token_regular_factory):
     """
     data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.delete(f"/api/v1/users/delete/{data.get('id')}/")
+    response = client.delete(f"/api/users/delete/{data.get('id')}/")
     assert response.status_code == 204
 
 
@@ -349,7 +349,7 @@ def test_destroy_users_other_user_admin_token(client, user_factory, jwt_token_ad
     data = jwt_token_admin_factory("test", "test@test.ru", "test_name")
     user2 = user_factory()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.delete(f"/api/v1/users/delete/{user2.id}/")
+    response = client.delete(f"/api/users/delete/{user2.id}/")
     assert response.status_code == 204
     delete_user = User.objects.get(id=user2.id)
     assert not delete_user.is_active
@@ -363,7 +363,7 @@ def test_destroy_users_other_user_token(client, user_factory, jwt_token_regular_
     data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     user2 = user_factory()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.delete(f"/api/v1/users/delete/{user2.id}/")
+    response = client.delete(f"/api/users/delete/{user2.id}/")
     assert response.status_code == 403
     data = response.json()
     assert data == {"detail": "You do not have permission to perform this action."}
@@ -376,7 +376,7 @@ def test_destroy_users_user_not_exist(client, jwt_token_admin_factory):
     """
     data = jwt_token_admin_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.delete("/api/v1/users/delete/9999/")
+    response = client.delete("/api/users/delete/9999/")
     assert response.status_code == 404
     data = response.json()
     assert data == {"detail": "Not found."}
@@ -388,7 +388,7 @@ def test_update_users_no_token(client, user_factory):
     Update particular user info without token
     """
     user = user_factory()
-    response = client.patch(f"/api/v1/users/update/{user.id}/")
+    response = client.patch(f"/api/users/update/{user.id}/")
     assert response.status_code == 401
     data = response.json()
     assert data == {"detail": "Authentication credentials were not provided."}
@@ -401,7 +401,7 @@ def test_update_users_wrong_token(client, user_factory):
     """
     user = user_factory()
     client.credentials(HTTP_AUTHORIZATION="Bearer wrong_token/")
-    response = client.patch(f"/api/v1/users/update/{user.id}/")
+    response = client.patch(f"/api/users/update/{user.id}/")
     assert response.status_code == 401
     data = response.json()
     assert data == {
@@ -425,7 +425,7 @@ def test_update_users_other_user_token(client, user_factory, jwt_token_regular_f
     data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     user2 = user_factory()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.patch(f"/api/v1/users/update/{user2.id}/")
+    response = client.patch(f"/api/users/update/{user2.id}/")
     assert response.status_code == 403
     data = response.json()
     assert data == {"detail": "You do not have permission to perform this action."}
@@ -439,7 +439,7 @@ def test_update_users_user_token(client, jwt_token_regular_factory):
     data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
     response = client.patch(
-        f"/api/v1/users/update/{data.get('id')}/",
+        f"/api/users/update/{data.get('id')}/",
         data={"username": "username"},
         format="json",
     )
@@ -455,7 +455,7 @@ def test_update_users_user_not_exist(client, jwt_token_admin_factory):
     """
     data = jwt_token_admin_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('token')}")
-    response = client.patch("/api/v1/users/update/999/", data={"username": "username"}, format="json")
+    response = client.patch("/api/users/update/999/", data={"username": "username"}, format="json")
     assert response.status_code == 404
     data = response.json()
     assert data == {"detail": "Not found."}
@@ -471,7 +471,7 @@ def test_update_users_unique_fields(client, user_factory, jwt_token_admin_factor
     user2 = user_factory()
 
     response = client.patch(
-        f"/api/v1/users/update/{user_data.get('id')}/",
+        f"/api/users/update/{user_data.get('id')}/",
         data={"username": user2.username},
         format="json",
     )
@@ -480,7 +480,7 @@ def test_update_users_unique_fields(client, user_factory, jwt_token_admin_factor
     assert data == {"username": ["user with this username already exists."]}
 
     response = client.patch(
-        f"/api/v1/users/update/{user_data.get('id')}/",
+        f"/api/users/update/{user_data.get('id')}/",
         data={"email": user2.email},
         format="json",
     )
@@ -497,7 +497,7 @@ def test_update_users_email_validation(client, jwt_token_regular_factory):
     user_data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
     response = client.patch(
-        f"/api/v1/users/update/{user_data.get('id')}/",
+        f"/api/users/update/{user_data.get('id')}/",
         data={"email": "email"},
         format="json",
     )
@@ -515,7 +515,7 @@ def test_update_users_null_fields(client, jwt_token_regular_factory):
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
     for field in ["username", "email"]:
         response = client.patch(
-            f"/api/v1/users/update/{user_data.get('id')}/",
+            f"/api/users/update/{user_data.get('id')}/",
             data={field: None},
             format="json",
         )
@@ -533,7 +533,7 @@ def test_update_users_blank_fields(client, jwt_token_regular_factory):
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
     for field in ["username", "email"]:
         response = client.patch(
-            f"/api/v1/users/update/{user_data.get('id')}/",
+            f"/api/users/update/{user_data.get('id')}/",
             data={field: ""},
             format="json",
         )
@@ -555,7 +555,7 @@ def test_update_users_password_patch(client, jwt_token_regular_factory):
         "password": new_password,
         "repeat_password": new_password,
     }
-    response = client.patch(f"/api/v1/users/update/{user_data.get('id')}/", data=patch_data, format="json")
+    response = client.patch(f"/api/users/update/{user_data.get('id')}/", data=patch_data, format="json")
     assert response.status_code == 200
     user = User.objects.get(id=user_data.get("id"))
     new_hash = user.password
@@ -574,7 +574,7 @@ def test_update_users_password_to_same_patch(client, jwt_token_regular_factory):
         "password": user_data.get("password"),
         "repeat_password": user_data.get("password"),
     }
-    response = client.patch(f"/api/v1/users/update/{user_data.get('id')}/", data=patch_data, format="json")
+    response = client.patch(f"/api/users/update/{user_data.get('id')}/", data=patch_data, format="json")
     assert response.status_code == 400
     data = response.json()
     assert data == {"password": ["New password cannot be the same as the old one"]}
@@ -587,7 +587,7 @@ def test_update_users_staff_status_change_no_token(client, user_factory):
     """
     user = user_factory(is_staff=False)
     patch_data = {"is_staff": True}
-    response = client.patch(f"/api/v1/users/update/{user.pk}/", data=patch_data, format="json")
+    response = client.patch(f"/api/users/update/{user.pk}/", data=patch_data, format="json")
     assert response.status_code == 401
     assert response.json() == {"detail": "Authentication credentials were not provided."}
 
@@ -600,7 +600,7 @@ def test_update_users_staff_status_change_regular_token(client, jwt_token_regula
     user_data = jwt_token_regular_factory("test", "test@test.ru", "test_name")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
     patch_data = {"is_staff": True}
-    response = client.patch(f"/api/v1/users/update/{user_data.get('id')}/", data=patch_data, format="json")
+    response = client.patch(f"/api/users/update/{user_data.get('id')}/", data=patch_data, format="json")
     assert response.status_code == 200
     data = response.json()
     assert "is_staff" not in data
@@ -617,7 +617,7 @@ def test_update_other_users_staff_status_change_regular_token(client, user_facto
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
     user = user_factory(is_staff=False)
     patch_data = {"is_staff": True}
-    response = client.patch(f"/api/v1/users/update/{user.pk}/", data=patch_data, format="json")
+    response = client.patch(f"/api/users/update/{user.pk}/", data=patch_data, format="json")
     assert response.status_code == 403
     data = response.json()
     assert data == {"detail": "You do not have permission to perform this action."}
@@ -632,7 +632,7 @@ def test_update_other_users_staff_status_change_admin_token(client, user_factory
     user = user_factory(is_staff=False)
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_data.get('token')}")
     patch_data = {"is_staff": True}
-    response = client.patch(f"/api/v1/users/update/{user.pk}/", data=patch_data, format="json")
+    response = client.patch(f"/api/users/update/{user.pk}/", data=patch_data, format="json")
     assert response.status_code == 200
     data = response.json()
     assert data.get("is_staff") is True

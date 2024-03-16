@@ -47,13 +47,13 @@ def create_user_and_get_token(username, email, full_name, is_staff=False):
         "email": email,
         "full_name": full_name,
     }
-    response = api_client.post("/api/v1/users/", data=data, format="json")
+    response = api_client.post("/api/users/", data=data, format="json")
     user = User.objects.first()
     assert user is not None
     if is_staff:
         user.is_staff = True
         user.save()
-    response = api_client.post("/api/v1/token/", data=data, format="json")
+    response = api_client.post("/api/token/", data=data, format="json")
     return {
         "token": response.json().get("access"),
         "id": user.pk,
