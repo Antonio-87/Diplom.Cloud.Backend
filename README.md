@@ -84,3 +84,17 @@ File:
   - fields: name, note
 - DELETE "api/files/delete/\<pk>/" --> delete file
   - token required
+
+## env
+
+- Configure variables:
+  - SECRET_KEY=
+  - DEBUG=0
+  - ALLOWED_HOSTS=\<server ip address>
+  - ALLOWED_CORS_ORIGINS=http://\<server ip address>,https://\<server ip address>
+  - DB_ENGINE=django.db.backends.postgresql
+  - DB_NAME=\<db_name>
+  - DB_HOST=localhost
+  - DB_PORT=5432
+  - DB_USER=\<username>
+  - DB_PASSWORD=\<password>
