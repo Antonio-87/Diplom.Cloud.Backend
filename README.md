@@ -1,9 +1,10 @@
+<img src="assets/MyCloud.png" width="300" height="120">
+
 # My cloud
 
 ## Description
 
-Cloud storage where you can store your files, download and use their links to put in other
-services.
+Cloud storage where you can store your files, upload them and use their links to host others services.
 
 Backend - https://github.com/Antonio-87/Diplom.Cloud.Backend.git<br />
 Frontend - https://github.com/Antonio-87/Diplom.Cloud.Frontend.git
