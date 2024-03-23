@@ -1,4 +1,4 @@
-<img src="assets/MyCloud.png" width="300" height="120">
+<img src="assets/MyCloud.png" width="300" height="250">
 
 # My cloud
 
