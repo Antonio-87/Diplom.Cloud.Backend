@@ -191,6 +191,7 @@ File:
 
   ```
 
+  - sudo www-data -aG \<username>
   - sudo systemctl start gunicorn
   - sudo systemctl enable gunicorn
   - sudo systemctl daemon-reload
